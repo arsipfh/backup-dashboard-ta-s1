@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Pendaftar Ujian Tugas Akhir</title>
+  <meta name="author" content="instagram @gustiwahyu96">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f7f9fb;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      margin: 0; padding: 0; overflow-x: hidden;
+    }
+
+    /* ── Logo ── */
+    .logo-upn { max-width: 100px; margin-bottom: 15px; }
+
+    /* ── Dashboard Section ── */
+    .dashboard-section {
+      padding: 2rem;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(26,43,73,0.06);
+      margin-bottom: 2rem;
+    }
+
+    /* ── Section Title ── */
+    .section-title {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem; width: 100%; margin-bottom: 1.5rem;
+    }
+    .section-title > div:first-child {
+      flex-shrink: 0; font-size: 1.25rem; font-weight: 600; color: #343a40;
+    }
+    .section-title i { margin-right: 0.5rem; color: #b30000; }
+
+    /* ── Search & Action Buttons ── */
+    .search-container {
+      display: flex; align-items: center; gap: 0.375rem;
+      flex-wrap: nowrap; margin: 0; padding: 0;
+    }
+    .search-input {
+      height: 36px; min-height: 36px; max-height: 36px;
+      padding: 0.375rem 0.75rem; line-height: 1.5; margin: 0;
+      border: 1px solid #dee2e6; border-radius: 6px; font-size: 0.875rem;
+      width: 220px; flex-shrink: 0;
+    }
+    .search-input:focus {
+      outline: none; border-color: #b30000;
+      box-shadow: 0 0 0 0.2rem rgba(179,0,0,0.25);
+    }
+    .btn-refresh {
+      border-radius: 5px; color: white; background: #b30000;
+      height: 36px; min-height: 36px; max-height: 36px;
+      padding: 0.375rem 0.875rem; line-height: 1.5; margin: 0;
+      display: inline-flex; align-items: center; justify-content: center;
+      white-space: nowrap; border: none; cursor: pointer;
+      transition: all 0.3s ease; font-weight: 500;
+    }
+    .btn-refresh:hover {
+      background: #990000; transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(179,0,0,0.3);
+    }
+    .btn-refresh i { font-size: 0.875rem; line-height: 1; margin-right: 0.25rem; }
+    .action-buttons {
+      display: flex; align-items: center; gap: 0.5rem;
+      flex-wrap: nowrap; justify-content: flex-end; flex-grow: 1; min-height: 36px;
+    }
+
+    /* ── Data Status ── */
+    .data-status {
+      background-color: #ffffff; padding: 15px; border-radius: 8px;
+      margin-bottom: 20px; text-align: center;
+      border-left: 4px solid #b30000; border-right: 1px solid #dee2e6;
+      border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: none;
+    }
+    .data-status .status-content {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; flex-wrap: wrap;
+    }
+    .data-status .data-icon { color: #b30000; font-size: 20px; }
+    .data-status .status-text { color: #343a40; font-weight: 500; font-size: 15px; }
+    .data-status .data-count {
+      background-color: #b30000; color: white;
+      padding: 4px 12px; border-radius: 4px; font-weight: 600; font-size: 14px;
+    }
+    .data-status.search-mode { border-left-color: #007bff; }
+    .data-status.search-mode .data-icon { color: #007bff; }
+    .data-status.search-mode .data-count { background-color: #007bff; }
+
+    /* ── Loading — diisolasi dari CSS WordPress ── */
+    .loading {
+      all: initial;
+      display: block;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 3rem 2rem;
+      background-color: #ffffff !important;
+      border-radius: 12px;
+      margin: 0.5rem 0;
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      color: #6c757d;
+    }
+    .loading * { box-sizing: border-box; }
+    .loading .spinner-border {
+      display: inline-block;
+      width: 3rem !important; height: 3rem !important;
+      border-width: 0.3rem !important;
+      border-style: solid !important;
+      border-color: #b30000 !important;
+      border-right-color: transparent !important;
+      border-radius: 50% !important;
+      animation: spin 0.75s linear infinite !important;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p {
+      display: block;
+      margin-top: 1rem !important;
+      font-size: 0.95rem !important;
+      color: #6c757d !important;
+      font-family: inherit;
+      line-height: 1.5;
+    }
+
+    /* ── Table — full width desktop ── */
+    .table-container {
+      overflow-x: auto; margin-top: 1rem; background: #ffffff;
+      border-radius: 12px; box-shadow: 0 6px 20px rgba(26,43,73,0.06);
+      width: 100%;
+    }
+    #dataTable {
+      border-collapse: separate !important; border-spacing: 0;
+      width: 100% !important; min-width: 1100px; margin-bottom: 0 !important;
+      table-layout: auto;
+    }
+    #dataTable thead th {
+      background: linear-gradient(135deg, #b30000 0%, #990000 100%) !important;
+      color: white !important; font-weight: 600; border: none;
+      padding: 1rem 0.75rem; white-space: nowrap;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    #dataTable thead th:first-child { border-radius: 12px 0 0 0; }
+    #dataTable thead th:last-child  { border-radius: 0 12px 0 0; }
+    #dataTable tbody td {
+      padding: 0.875rem 0.75rem; vertical-align: middle;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    #dataTable tbody tr { transition: all 0.2s ease; background: white; }
+    #dataTable tbody tr:hover {
+      background-color: #ffe6e6 !important;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 8px rgba(179,0,0,0.1);
+    }
+
+    .btn-status { font-weight: bold; padding: 5px 10px; font-size: 14px; border: none; }
+    .wrap-text { white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; }
+    .btn-revisi-used { background-color: #6c757d !important; color: white !important; cursor: not-allowed !important; }
+
+    /* ── Pagination ── */
+    .pagination .page-item .page-link {
+      border-radius: 5px; margin: 0 3px; transition: all 0.3s;
+    }
+    .pagination .page-item.active .page-link {
+      background: #b30000; color: white; border: none;
+    }
+    #pagination { width: 100% !important; justify-content: flex-end !important; margin-top: 15px; }
+    #mobileNote { display: none; text-align: center; font-size: 14px; color: #6c757d; margin-top: 10px; }
+
+    /* ══ Custom Modal ══ */
+    .wp-modal-overlay {
+      display: none;
+      position: fixed !important;
+      top: 0 !important; left: 0 !important;
+      width: 100vw !important; height: 100vh !important;
+      background: rgba(0,0,0,0.55) !important;
+      z-index: 2147483647 !important;
+      justify-content: center !important; align-items: center !important;
+      overflow-y: auto !important;
+    }
+    .wp-modal-overlay.active { display: flex !important; }
+    .wp-modal-box {
+      background: #fff !important; border-radius: 10px !important;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.35) !important;
+      width: 90% !important; max-width: 520px !important;
+      max-height: 90vh !important; overflow-y: auto !important;
+      position: relative !important; margin: auto !important; pointer-events: all !important;
+    }
+    .wp-modal-box.wp-modal-lg { max-width: 860px !important; }
+    .wp-modal-header {
+      display: flex !important; justify-content: space-between !important;
+      align-items: center !important; padding: 1rem 1.25rem !important;
+      border-bottom: 1px solid #dee2e6 !important; background: #f8f9fa !important;
+      border-radius: 10px 10px 0 0 !important; position: sticky !important;
+      top: 0 !important; z-index: 10 !important;
+    }
+    .wp-modal-header h5 { margin: 0 !important; font-size: 1.1rem !important; font-weight: 600 !important; }
+    .wp-modal-close {
+      background: white !important; color: black !important; border: none !important;
+      border-radius: 50% !important; width: 32px !important; height: 32px !important;
+      font-size: 1.2rem !important; cursor: pointer !important;
+      display: flex !important; align-items: center !important; justify-content: center !important;
+      line-height: 1 !important; flex-shrink: 0 !important; pointer-events: all !important;
+    }
+    .wp-modal-body { padding: 1.25rem !important; pointer-events: all !important; }
+    .wp-modal-body.scrollable { max-height: 65vh !important; overflow-y: auto !important; }
+    .wp-modal-footer {
+      padding: 0.75rem 1.25rem !important; border-top: 1px solid #dee2e6 !important;
+      display: flex !important; justify-content: flex-end !important; gap: 0.5rem !important;
+      background: #f8f9fa !important; border-radius: 0 0 10px 10px !important;
+      position: sticky !important; bottom: 0 !important;
+    }
+    .wp-modal-footer button, .wp-modal-body button,
+    .wp-modal-body select, .wp-modal-body input, .wp-modal-body a {
+      pointer-events: all !important; cursor: pointer !important;
+    }
+    .swal2-container { z-index: 2147483648 !important; }
+    .swal2-popup { z-index: 2147483649 !important; }
+
+    /* ══ Jadwal Modal ══ */
+    .jadwal-header-bar {
+      background: linear-gradient(135deg, #b30000 0%, #7a0000 100%);
+      padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between;
+      border-radius: 10px 10px 0 0;
+    }
+    .jadwal-header-bar h5 {
+      color: #fff; margin: 0; font-size: 15px; font-weight: 600;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .jadwal-modal-close {
+      background: rgba(255,255,255,0.15); border: none; border-radius: 50%;
+      width: 30px; height: 30px; color: #fff; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; line-height: 1;
+    }
+    .jadwal-modal-close:hover { background: rgba(255,255,255,0.3); }
+
+    .jd-section { margin-bottom: 12px; }
+    .jd-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.07em; color: #6b7280; margin-bottom: 6px;
+    }
+    .jd-datetime-card {
+      background: #fff5f5; border: 1px solid #fca5a5; border-radius: 10px;
+      padding: 12px 14px; display: flex; align-items: center; gap: 12px;
+    }
+    .jd-datetime-icon {
+      width: 40px; height: 40px; background: #b30000; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 20px; flex-shrink: 0;
+    }
+    .jd-day { font-size: 10px; color: #b30000; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .jd-date { font-size: 14px; font-weight: 700; color: #7f1d1d; margin: 2px 0; }
+    .jd-time { font-size: 12px; color: #ef4444; }
+
+    .jd-countdown {
+      background: #fff7ed; border: 1px solid #fed7aa; border-radius: 10px;
+      padding: 10px 14px; display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+    }
+    .jd-cd-label {
+      font-size: 11px; color: #92400e; font-weight: 600;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .jd-cd-blocks { display: flex; gap: 6px; }
+    .jd-cd-block {
+      text-align: center; background: #ea580c; border-radius: 7px;
+      padding: 3px 8px; min-width: 40px;
+    }
+    .jd-cd-num { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .jd-cd-lbl { font-size: 9px; color: rgba(255,255,255,0.8); text-transform: uppercase; }
+    .jd-cd-done { font-size: 13px; font-weight: 700; color: #ea580c; }
+
+    .jd-ruang-card {
+      background: #faf5ff; border: 1px solid #d8b4fe; border-radius: 10px;
+      padding: 11px 14px; display: flex; align-items: center; gap: 8px;
+    }
+    .jd-ruang-icon {
+      width: 36px; height: 36px; background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 18px; flex-shrink: 0;
+    }
+    .jd-ruang-lbl {
+      font-size: 10px; font-weight: 700; color: #6d28d9; text-transform: uppercase;
+      letter-spacing: 0.05em; display: flex; align-items: center; gap: 5px; margin-bottom: 3px;
+    }
+    .jd-ruang-name { font-size: 14px; font-weight: 700; color: #4c1d95; }
+
+    .jd-penguji-wrap {
+      background: #f8f9fc; border: 1px solid rgba(0,0,0,0.08); border-radius: 10px; overflow: hidden;
+    }
+    .jd-penguji-head {
+      padding: 8px 14px; background: #fff5f5; border-bottom: 1px solid #fca5a5;
+      font-size: 10px; font-weight: 700; color: #7f1d1d; text-transform: uppercase; letter-spacing: 0.06em;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .jd-penguji-row {
+      display: flex; align-items: center; padding: 9px 14px;
+      border-bottom: 1px solid rgba(0,0,0,0.06); gap: 10px;
+    }
+    .jd-penguji-row:last-child { border-bottom: none; }
+    .jd-avatar {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .jd-av-red   { background: #fde8e8; color: #b30000; }
+    .jd-av-blue  { background: #e8f0fe; color: #1a56db; }
+    .jd-av-green { background: #def7ec; color: #057a55; }
+    .jd-role { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+    .jd-name { font-size: 13px; font-weight: 600; color: #111827; }
+
+    .jd-footer {
+      padding: 0.75rem 1.25rem; background: #f8f9fc; border-top: 1px solid rgba(0,0,0,0.08);
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      border-radius: 0 0 10px 10px; position: sticky; bottom: 0;
+    }
+    .jd-btn-cal {
+      background: #fff; border: 1px solid #d1d5db; border-radius: 8px;
+      padding: 7px 14px; font-size: 12px; font-weight: 600; color: #374151;
+      cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s;
+    }
+    .jd-btn-cal:hover { background: #f3f4f6; }
+    .jd-btn-tutup {
+      background: #b30000; border: none; border-radius: 8px; padding: 7px 22px;
+      font-size: 12px; font-weight: 600; color: #fff; cursor: pointer; transition: background 0.15s;
+    }
+    .jd-btn-tutup:hover { background: #990000; }
+
+    .file-type-info { font-size: 12px; color: #6c757d; margin-top: 5px; }
+    .revision-file-item {
+      background-color: #f8f9fa; padding: 15px; border-radius: 8px;
+      margin-bottom: 15px; border: 1px solid #dee2e6; position: relative;
+    }
+    .revision-file-item:last-child { margin-bottom: 10px; }
+    .remove-file-btn {
+      position: absolute; top: 10px; right: 10px; background: #dc3545;
+      color: white; border: none; border-radius: 50%; width: 24px; height: 24px;
+      font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .remove-file-btn:hover { background: #c82333; }
+    .add-file-btn { margin-top: 10px; margin-bottom: 20px; }
+
+    /* ── Wrapper utama pakai container-fluid ── */
+    .main-wrapper {
+      width: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .section-title { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+      .section-title > div:first-child { text-align: center; }
+      .action-buttons { justify-content: center; flex-direction: column; gap: 0.75rem; }
+      .search-container { width: 100%; justify-content: center; }
+      .search-input { width: 100%; max-width: 300px; flex-grow: 1; }
+      .btn-refresh { align-self: center; width: 100%; max-width: 300px; }
+      .dashboard-section { padding: 15px; }
+      #dataTable thead th, #dataTable tbody td { font-size: 13px; padding: 8px 5px !important; }
+      .jd-cd-blocks { flex-wrap: wrap; }
+      .main-wrapper { padding: 0 0.75rem; }
+    }
+    @media (max-width: 576px) {
+      #mobileNote { display: block; }
+      .btn-status { font-size: 12px !important; padding: 4px 8px !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ganti .container menjadi .main-wrapper untuk lebar penuh desktop -->
+  <div class="main-wrapper mt-4">
+
+    <!-- ── Header ── -->
+    <div class="py-4 text-center">
+      <img src="https://hukum.upnvj.ac.id/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-14-at-13.45.20-1.png"
+           alt="Logo UPNVJ" class="logo-upn" style="width: 10%;">
+      <h3 class="fw-bold mb-2">Dashboard Ujian Tugas Akhir</h3>
+      <p class="text-muted">
+        Program Studi Hukum Program Sarjana<br>
+        Fakultas Hukum Universitas Pembangunan Nasional "Veteran" Jakarta
+      </p>
+    </div>
+
+    <!-- ── Dashboard Section ── -->
+    <div class="dashboard-section">
+      <div class="section-title">
+        <div>
+          <i class="bi bi-table"></i> Data Pendaftaran
+        </div>
+        <div class="action-buttons">
+          <div class="search-container">
+            <input type="text" class="search-input" id="searchInput"
+                   placeholder="Cari nama atau NIM..." onkeyup="filterTable()">
+          </div>
+          <button class="btn-refresh" onclick="refreshData()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Status data -->
+      <div id="dataStatus" class="data-status">
+        <div class="status-content">
+          <span class="data-icon">
+            <i class="bi bi-people-fill" style="font-size:18px;"></i>
+          </span>
+          <span class="status-text" id="statusText">Total Mahasiswa Pendaftar Sampai Saat Ini</span>
+          <span class="data-count" id="dataCount">0</span>
+        </div>
+      </div>
+
+      <!-- Loading — isolated from WordPress CSS -->
+      <div id="loading" class="loading">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-muted">Memuat data pendaftaran...</p>
+      </div>
+
+      <!-- Table -->
+      <div class="table-container" id="tableContainer" style="display:none;">
+        <table id="dataTable" class="table table-hover table-striped">
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+
+      <p id="mobileNote">Geser ke samping untuk melihat detail status</p>
+
+      <nav>
+        <ul id="pagination" class="pagination justify-content-center mt-3" style="display:none;"></ul>
+      </nav>
+    </div>
+  </div>
+
+
+  <!-- ══ MODAL JADWAL ══ -->
+  <div class="wp-modal-overlay" id="wpJadwalOverlay" onclick="wpCloseJadwal(event)">
+    <div class="wp-modal-box" onclick="event.stopPropagation()" style="padding:0; overflow:hidden;">
+      <div class="jadwal-header-bar">
+        <h5>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="3" stroke="white" stroke-width="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Jadwal Ujian Tugas Akhir
+        </h5>
+        <button class="jadwal-modal-close" onclick="wpCloseJadwal()">×</button>
+      </div>
+      <div class="wp-modal-body scrollable" id="wpJadwalBody" style="padding:1.25rem;"></div>
+      <div class="jd-footer">
+        <button class="jd-btn-cal" id="jdCalBtn" onclick="jadwalAddToCalendar()">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="3" stroke="currentColor" stroke-width="2"/>
+            <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Tambah ke Kalender
+        </button>
+        <button class="jd-btn-tutup" onclick="wpCloseJadwal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ MODAL REVISI ══ -->
+  <div class="wp-modal-overlay" id="wpRevisiOverlay" onclick="wpCloseRevisi(event)">
+    <div class="wp-modal-box wp-modal-lg" onclick="event.stopPropagation()">
+      <div class="wp-modal-header">
+        <h5><i class="bi bi-arrow-repeat me-2"></i>Upload Revisi File</h5>
+        <button class="wp-modal-close" onclick="wpCloseRevisi()">×</button>
+      </div>
+      <div class="wp-modal-body scrollable">
+        <div class="row">
+          <div class="col-md-6">
+            <form id="revisionForm">
+              <div class="mb-3">
+                <label class="form-label">NIM</label>
+                <input type="text" id="revisionNim" class="form-control" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Nama</label>
+                <input type="text" id="revisionNama" class="form-control" disabled>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Permintaan Revisi dari Dikjar</label>
+                <input type="text" id="revisionRequest" class="form-control" disabled>
+              </div>
+              <div id="revisionFilesContainer">
+                <div class="revision-file-item" id="fileItem_1">
+                  <button type="button" class="remove-file-btn"
+                          onclick="removeRevisionFile('fileItem_1')" style="display:none;">×</button>
+                  <div class="mb-3">
+                    <label class="form-label">File yang akan direvisi</label>
+                    <select class="form-select revision-field" onchange="updateFileAccept(this)">
+                      <option value="">Pilih file...</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">File Revisi</label>
+                    <input type="file" class="form-control revision-file-input" required>
+                    <small class="form-text text-muted">File lama akan otomatis diganti dengan yang baru</small>
+                    <div class="file-type-info"></div>
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm add-file-btn"
+                      onclick="addRevisionFile()" id="addFileBtn">
+                <i class="bi bi-plus-circle me-1"></i> Tambah Dokumen Lain
+              </button>
+              <div class="alert alert-info mt-3">
+                <small>
+                  <strong>Catatan:</strong> Anda hanya dapat melakukan 1x submit revisi untuk permintaan ini.
+                  Setelah submit, tombol revisi akan non-aktif sampai admin meminta revisi lagi.
+                </small><hr>
+                <b>Jika terdapat kendala bisa menghubungi admin</b>
+                <a href="https://wa.link/50sl7x" target="_blank" class="btn btn-success btn-sm ms-1">
+                  <i class="bi bi-whatsapp me-1"></i> Klik Disini
+                </a>
+              </div>
+            </form>
+          </div>
+          <div class="col-md-6">
+            <div class="alert alert-danger" role="alert">
+              <h4 class="alert-heading">Perhatian!</h4>
+              <p class="mb-0"><strong>Kepada Mahasiswa/i Fakultas Hukum UPN "Veteran" Jakarta</strong>, File yang di minta revisi oleh dikjar mohon dapat dilengkapi sesuai catatan,
+                <b>Dimohon untuk menjadi perhatian bagi kita semua.</b>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="wp-modal-footer">
+        <button class="btn btn-secondary" onclick="wpCloseRevisi()">Batal</button>
+        <button class="btn btn-primary" id="submitRevisionBtn" onclick="submitMultipleRevisions()">
+          Upload Semua Revisi
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const endpointUrl = "https://script.google.com/macros/s/AKfycbwChlTHJP97wFmrR9o5JTOVrM8P7COYxHys7vENu4AzlwD88HHVjhEMWP22-zAfCzV_Ig/exec?format=json";
+    const POST_URL    = "https://script.google.com/macros/s/AKfycbwChlTHJP97wFmrR9o5JTOVrM8P7COYxHys7vENu4AzlwD88HHVjhEMWP22-zAfCzV_Ig/exec";
+
+    // ✅ Nama(1) & NIM(2) dikeluarkan dari sini karena digabung jadi kolom "Mahasiswa" tersendiri
+// ✅ key sekarang mengacu ke index ASLI di rowData (oIdx), bukan posisi urutan (dIdx)
+const COLUMN_MAPPING = {
+  3:"Judul", 4:"Dosen Pembimbing",
+  5:"Konsentrasi", 6:"Semester", 7:"Tahun Akademik", 8:"Skema",
+  0:"Tanggal Mendaftar", 9:"Tanggal Pelaksanaan Sempro", 10:"Sinta",
+  11:"Keterangan", 12:"Jadwal Ujian"
+};
+const visibleIndices = [3,4,5,6,7,8,0,9,10,11,12,13,14];
+    const itemsPerPage   = 10;
+    let currentPage = 1, dataRows = [], filteredRows = [], isSearching = false;
+    const checkColumns  = [1,2,3,4,5,6,7,8];
+    const revisionFileConfig = {
+  // Wajib semua skema (urut tampil sesuai sheet)
+  kartumonitoringtugasakhir: { label:'Kartu Monitoring Tugas Akhir',        accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  buktilunaspembayaran:      { label:'Bukti Lunas Pembayaran Kuliah',       accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  ijazah:                    { label:'Ijazah Terakhir',                     accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  ktp:                       { label:'Scan KTP',                            accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  khs:                       { label:'Kartu Hasil Studi (KHS)',             accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  lembarturnitin:            { label:'Lembar Turnitin (max 25%)',           accept:'.pdf', maxSize:5*1024*1024, info:'Hanya PDF (Max 5 MB)' },
+  buktipartisipasipkm:       { label:'Bukti Partisipasi PKM',               accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  toefl:                     { label:'Sertifikat TOEFL (min 450)',          accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  sertifikat:                { label:'Sertifikat Kompetensi/Profesi (BNSP)',accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)' },
+  naskah:                    { label:'Naskah Ujian Tugas Akhir',            accept:'.pdf', maxSize:5*1024*1024, info:'Hanya PDF (Max 5 MB)' },
+  ppt:                       { label:'File PPT/Presentasi',                 accept:'.pdf', maxSize:5*1024*1024, info:'Hanya PDF (Max 5 MB)' },
+  // Hanya muncul jika skema = Artikel Ilmiah
+  sinta_akreditasi:          { label:'Sertifikat/SK Akreditasi Sinta',          accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)', onlyArtikel:true },
+  persetujuanArtikel:        { label:'Lembar Persetujuan Artikel',              accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)', onlyArtikel:true },
+  loaJurnal:                 { label:'Bukti LOA dari Penerbit Jurnal',          accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)', onlyArtikel:true },
+  reviewArtikel:             { label:'Bukti Review Artikel Ilmiah',             accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)', onlyArtikel:true },
+  korespondensiJurnal:       { label:'Bukti Korespondensi dengan Penerbit Jurnal', accept:'.pdf', maxSize:1*1024*1024, info:'Hanya PDF (Max 1 MB)', onlyArtikel:true },
+linkArtikel:               { label:'Link Artikel Ilmiah (URL)', type:'link', info:'URL harus diawali http:// atau https://', onlyArtikel:true }   // ← TAMBAHKAN
+};
+    let fileCounter = 1, currentRevisionRequest = '', selectedFields = new Set();
+let currentRevisionSkema = '';   // ← TAMBAH
+
+// Builder opsi dropdown berdasarkan skema
+function buildRevisionOptions(skema) {
+  const isArtikel = (skema || '').toString().toLowerCase().trim() === 'artikel ilmiah';
+  let html = '<option value="">Pilih file...</option>';
+  Object.entries(revisionFileConfig).forEach(([key, cfg]) => {
+    if (cfg.onlyArtikel && !isArtikel) return;
+    html += `<option value="${key}">${cfg.label}</option>`;
+  });
+  return html;
+}
+    let _jadwalExamDate = null, _jadwalCountdownInterval = null;
+
+    const BULAN_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const HARI_ID  = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+
+    function isRevisionRequested(t) {
+      if (!t || t.toString().trim() === "") return false;
+      return /revisi\d*/i.test(t.toString().toLowerCase());
+    }
+    function isRevisionDoneForRequest(t, k) {
+      if (!t || t.toString().trim() === "" || !k || k.toString().trim() === "") return false;
+      return new RegExp(`\\[${t.toString().toLowerCase().trim()}\\]`, 'i').test(k.toString().toLowerCase());
+    }
+    function getRevisionNumber(t) {
+      if (!t) return 0;
+      const m = t.toString().toLowerCase().match(/revisi(\d*)/);
+      return m && m[1] ? parseInt(m[1]) || 1 : 1;
+    }
+
+    function fetchData(url = endpointUrl) {
+      fetch(url).then(res => res.json()).then(data => {
+        document.getElementById("loading").style.display      = "none";
+        document.getElementById("tableContainer").style.display = "block";
+        document.getElementById("pagination").style.display   = "flex";
+        document.getElementById("dataStatus").style.display   = "block";
+
+        if (!Array.isArray(data) || data.length < 2) {
+          document.getElementById("dataStatus").innerHTML = "<span class='text-danger'>Data tidak valid atau kosong.</span>";
+          return;
+        }
+
+        const head = document.getElementById("tableHead");
+head.innerHTML = "";
+const trh = document.createElement("tr");
+
+// Kolom gabungan Mahasiswa di posisi pertama
+const thMhs = document.createElement("th");
+thMhs.textContent = "Mahasiswa";
+trh.appendChild(thMhs);
+
+visibleIndices.forEach(oIdx => {
+  const th = document.createElement("th");
+  th.textContent = COLUMN_MAPPING[oIdx] !== undefined
+    ? COLUMN_MAPPING[oIdx]
+    : (data[0][oIdx] || `Kolom ${oIdx}`);
+  trh.appendChild(th);
+});
+head.appendChild(trh);
+
+        dataRows = [];
+        for (let i = 1; i < data.length; i++) {
+  const rowData = data[i];
+  if (checkColumns.every(ci => !rowData[ci] || rowData[ci].toString().trim() === "")) continue;
+  const tr = document.createElement("tr");
+  tr.classList.add("data-row");
+
+  // Kolom gabungan Mahasiswa (Nama + NIM)
+  const nama = (rowData[1] || "").toString();
+  const nim  = (rowData[2] || "").toString();
+  const tdMhs = document.createElement("td");
+  tdMhs.innerHTML = `
+    <div style="font-weight:600;color:#212529;font-size:13px;">${nama}</div>
+    <div style="font-size:11px;color:#6c757d;margin-top:2px;">
+      <i class="bi bi-person-badge me-1"></i>${nim}
+    </div>`;
+  tr.appendChild(tdMhs);
+
+  visibleIndices.forEach(idx => {
+            const td = document.createElement("td");
+            if (idx === 11) {
+              let k = rowData[idx];
+              if (!k || k.toString().trim() === "") { k = "Menunggu Respon"; }
+              const isDefault = (k === "Menunggu Respon");
+              td.innerHTML = `<span style="font-weight:normal;" class="btn ${isDefault ? 'btn-warning' : 'btn-primary'} btn-status${k.length > 23 ? ' wrap-text' : ''}">${k}</span>`;
+            } else if (idx === 12) {
+              const rawSchedule = (rowData[idx] || "").trim();
+              if (!rawSchedule) {
+                td.innerHTML = `<button style="font-weight:normal;" class="btn btn-secondary btn-status">Belum Ada Jadwal</button>`;
+              } else {
+                const hasJadwalFormat = rawSchedule.includes("Pukul") || rawSchedule.includes("\n");
+                if (hasJadwalFormat || /^\d{4}-\d{2}-\d{2}T/.test(rawSchedule)) {
+                  const esc = rawSchedule.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+                  td.innerHTML = `<button style="font-weight:normal;" class="btn btn-danger btn-status"
+                    onclick="showSchedule(this)" data-schedule="${esc}">
+                  <i class="bi bi-calendar-event me-1"></i>Lihat Jadwal</button>`;
+                } else {
+                  let d = rawSchedule; if (d.length > 50) d = d.substring(0,47)+'...';
+                  td.innerHTML = `<button style="font-weight:normal;"
+                    class="btn btn-danger btn-status${d.length > 23 ? ' wrap-text' : ''}"
+                    title="${rawSchedule.replace(/"/g,'&quot;')}">${d}</button>`;
+                }
+              }
+            } else if (idx === 13) {
+  const bapLink = (rowData[idx] || "").trim();
+  const nimMhs  = rowData[2] || "";
+  if (!bapLink) {
+    td.innerHTML = `<button style="font-weight:normal;" class="btn btn-secondary btn-status">Belum Tersedia</button>`;
+  } else if (/^(https?:\/\/|www\.)/i.test(bapLink)) {
+    const rawUrl  = bapLink.startsWith('http') ? bapLink : 'https://' + bapLink;
+    const fUrl    = sanitizeDriveUrl(rawUrl); // ← auto-convert ke mode view
+    td.innerHTML = `<button onclick="checkSurveyBeforeViewBAP('${nimMhs}','${fUrl}')"
+      class="btn btn-success btn-status" style="font-weight:normal;cursor:pointer;">
+      <i class="bi bi-file-earmark-pdf me-1"></i>Lihat BAP</button>`;
+  } else {
+    td.innerHTML = `<span class="btn btn-warning btn-status" style="font-weight:normal;cursor:default;">${bapLink}</span>`;
+  }
+            } else if (idx === 14) {
+  const rVal  = rowData[idx];
+  const kRVal = rowData[15] || "";
+  const hasRR = isRevisionRequested(rVal);
+  const rDone = isRevisionDoneForRequest(rVal, kRVal);
+  const rNum  = getRevisionNumber(rVal);
+  const nm    = rowData[1] || "";
+  const nim   = rowData[2] || "";
+  const skemaMhs = (rowData[8] || '').toString().replace(/'/g, "\\'");
+  if (hasRR && !rDone) {
+    td.innerHTML = `<button class="btn btn-danger btn-sm"
+      onclick="showRevisionModal('${nim}','${nm}','${(rVal||'').replace(/'/g,"\\'")}','${skemaMhs}')"
+      style="font-weight:normal;">
+      <i class="bi bi-arrow-clockwise me-1"></i>${rNum > 1 ? `Revisi Ke ${rNum}` : 'Revisi Disini'}</button>`;
+  } else if (rDone) {
+    td.innerHTML = `<button class="btn btn-secondary btn-sm btn-revisi-used" disabled
+      style="font-weight:normal;">
+      <i class="bi bi-check-circle me-1"></i>Sudah Revisi</button>`;
+  } else {
+    td.innerHTML = rVal && rVal.toString().trim() !== ""
+      ? `<small class="text-muted">${rVal.substring(0,30)}${rVal.length > 30 ? '...' : ''}</small>`
+      : '-';
+  }
+} else {
+  const v = rowData[idx];
+  td.textContent = typeof v === "string" && /^\d{4}-\d{2}-\d{2}T/.test(v)
+    ? formatTanggalIndonesia(v) : v;
+}
+            tr.appendChild(td);
+          });
+          dataRows.push(tr);
+        }
+
+        dataRows.reverse();
+        currentPage = 1;
+        updateDataStatus();
+        updateTable();
+      }).catch(() => {
+        document.getElementById("loading").innerHTML = `<p style="color:#dc3545;font-family:sans-serif;">Gagal memuat data.</p>`;
+      });
+    }
+
+    function formatTanggalIndonesia(ds) {
+      const d = new Date(ds);
+      if (isNaN(d)) return ds;
+      return `${d.getDate()} ${BULAN_ID[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function updateDataStatus() {
+      const total = isSearching ? filteredRows.length : dataRows.length;
+      document.getElementById('dataCount').textContent = total.toLocaleString();
+      if (isSearching) {
+        document.getElementById('statusText').textContent = 'Hasil Pencarian';
+        document.getElementById('dataStatus').classList.add('search-mode');
+      } else {
+        document.getElementById('statusText').textContent = 'Total Mahasiswa Pendaftar Sampai Saat Ini';
+        document.getElementById('dataStatus').classList.remove('search-mode');
+      }
+      document.getElementById('dataStatus').style.display = total > 0 ? 'block' : 'none';
+    }
+
+    function filterTable() {
+  const kw = document.getElementById("searchInput").value.toLowerCase().trim();
+  if (!kw) { clearSearch(); return; }
+  filteredRows = dataRows.filter(r => {
+    const tds = r.getElementsByTagName("td");
+    // ✅ kolom Mahasiswa (td[0]) sudah memuat teks Nama + NIM sekaligus
+    return tds[0].textContent.toLowerCase().includes(kw);
+  });
+      isSearching = true; currentPage = 1;
+      updateDataStatus(); updateTable();
+      document.querySelector('.table-container').scrollTop = 0;
+    }
+
+    function clearSearch() {
+      document.getElementById("searchInput").value = "";
+      isSearching = false; currentPage = 1;
+      updateDataStatus(); updateTable();
+    }
+
+    function refreshData() {
+      dataRows = []; filteredRows = []; isSearching = false;
+      document.getElementById("tableHead").innerHTML = "";
+      document.getElementById("tableBody").innerHTML = "";
+      document.getElementById("pagination").innerHTML = "";
+      document.getElementById("searchInput").value = "";
+      document.getElementById("loading").style.display      = "block";
+      document.getElementById("tableContainer").style.display = "none";
+      document.getElementById("pagination").style.display   = "none";
+      document.getElementById("dataStatus").style.display   = "none";
+      fetchData(endpointUrl + "&nocache=" + Date.now());
+    }
+
+    function updateTable() {
+      const tb = document.getElementById("tableBody");
+      tb.innerHTML = "";
+      const rowsToShow = isSearching ? filteredRows : dataRows;
+      const start = (currentPage - 1) * itemsPerPage;
+      const pageData = rowsToShow.slice(start, start + itemsPerPage);
+      if (pageData.length === 0) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = visibleIndices.length + 1;
+        td.className = "text-center py-4 text-muted";
+        td.textContent = isSearching ? "Tidak ditemukan data yang sesuai" : "Tidak ada data";
+        tr.appendChild(td); tb.appendChild(tr);
+      } else {
+        pageData.forEach(r => tb.appendChild(r.cloneNode(true)));
+      }
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const rowsToShow = isSearching ? filteredRows : dataRows;
+      const totalPages = Math.ceil(rowsToShow.length / itemsPerPage);
+      const pc = document.getElementById("pagination");
+      pc.innerHTML = "";
+      if (totalPages <= 1) { pc.style.display = "none"; return; }
+      pc.style.display = "flex";
+      const maxP = 5;
+      let startP = Math.max(1, currentPage - Math.floor(maxP / 2));
+      let endP   = Math.min(totalPages, startP + maxP - 1);
+      startP = Math.max(1, endP - maxP + 1);
+      if (currentPage > 1) {
+        const li = document.createElement("li"); li.className = "page-item";
+        li.innerHTML = `<a class="page-link" href="#">&laquo;</a>`;
+        li.onclick = () => changePage(1); pc.appendChild(li);
+      }
+      for (let i = startP; i <= endP; i++) {
+        const li = document.createElement("li");
+        li.className = `page-item ${i === currentPage ? "active" : ""}`;
+        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+        li.onclick = () => changePage(i); pc.appendChild(li);
+      }
+      if (currentPage < totalPages) {
+        const li = document.createElement("li"); li.className = "page-item";
+        li.innerHTML = `<a class="page-link" href="#">&raquo;</a>`;
+        li.onclick = () => changePage(totalPages); pc.appendChild(li);
+      }
+    }
+
+    function changePage(p) {
+      currentPage = p; updateTable();
+      document.querySelector('.table-container').scrollTop = 0;
+    }
+
+    function normalizeYear(yearStr) {
+  const y = parseInt(yearStr, 10);
+  return yearStr.length === 2 ? 2000 + y : y;
+}
+
+function parseJadwalStr(raw) {
+  const result = { 
+    tanggalFormatted:'', waktu:'', ruangUjian:'', 
+    ketuaPenguji:'', penguji1:'', dosenPembimbing:'' 
+  };
+  if (!raw || !raw.trim()) return result;
+
+  const lines = raw.trim().split('\n').map(l => l.trim()).filter(l => l);
+  const line1 = lines[0] || '';
+
+  // 1. Cari pola: [Hari,] tanggal bulan tahun (2 atau 4 digit)
+  const mTgl = line1.match(
+    /^(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu),?\s+(\d{1,2})\s+(\w+)\s+(\d{2,4})/i
+  );
+  if (mTgl) {
+    const day   = mTgl[1];
+    const date  = mTgl[2];
+    const month = mTgl[3];
+    const year  = normalizeYear(mTgl[4]);
+    result.tanggalFormatted = day + ', ' + date + ' ' + month + ' ' + year;
+  } else {
+    // 2. Fallback: tanggal bulan tahun (tanpa hari)
+    const mTgl2 = line1.match(
+      /(\d{1,2})\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+(\d{2,4})/i
+    );
+    if (mTgl2) {
+      const dateNum   = mTgl2[1];
+      const monthName = mTgl2[2];
+      const year      = normalizeYear(mTgl2[3]);
+      const d = new Date(year, BULAN_ID.findIndex(b => b.toLowerCase() === monthName.toLowerCase()), dateNum);
+      if (!isNaN(d)) {
+        result.tanggalFormatted = HARI_ID[d.getDay()] + ', ' + dateNum + ' ' + monthName + ' ' + year;
+      }
+    }
+  }
+
+  // 3. Jika masih kosong, cek format ISO
+  if (!result.tanggalFormatted && /^\d{4}-\d{2}-\d{2}T/.test(raw)) {
+    const d = new Date(raw);
+    if (!isNaN(d)) {
+      result.tanggalFormatted = HARI_ID[d.getDay()] + ', ' + d.getDate() + ' ' + BULAN_ID[d.getMonth()] + ' ' + d.getFullYear();
+    }
+  }
+
+  // Ekstrak waktu (tetap seperti sebelumnya)
+  const mWaktu = line1.match(/Pukul\s+(\d{1,2}:\d{2})\s*s\.?[/]?d\.?\s*(\d{1,2}:\d{2})/i);
+  if (mWaktu) {
+    result.waktu = mWaktu[1] + ' – ' + mWaktu[2] + ' WIB';
+  } else {
+    const mW = line1.match(/Pukul\s+(\d{1,2}:\d{2})/i);
+    if (mW) result.waktu = mW[1] + ' WIB';
+  }
+
+  // Ambil info ruangan, penguji, dll (tidak diubah)
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i];
+    let m;
+    if      ((m = line.match(/^Tempat\s*:\s*(.+)/i)))               result.ruangUjian      = m[1].trim();
+    else if ((m = line.match(/^Ketua Penguji\s*:\s*(.+)/i)))         result.ketuaPenguji    = m[1].trim();
+    else if ((m = line.match(/^Penguji 1\s*:\s*(.+)/i)))             result.penguji1        = m[1].trim();
+    else if ((m = line.match(/^Dosen Pembimbing\s*:\s*(.+)/i)))      result.dosenPembimbing = m[1].trim();
+  }
+
+  return result;
+}
+
+    function parseTanggalIndonesia(str) {
+      if (!str) return null;
+      const bulanMap = { januari:0,februari:1,maret:2,april:3,mei:4,juni:5,
+        juli:6,agustus:7,september:8,oktober:9,november:10,desember:11 };
+      let s = str.replace(/,/g,' ').replace(/\s+/g,' ').trim();
+      let m = s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})\s+[Pp]ukul\s+(\d{1,2})[.:](\d{2})/i);
+      if (m) { const bln = bulanMap[m[2].toLowerCase()]; if (bln !== undefined) return new Date(+m[3],bln,+m[1],+m[4],+m[5],0); }
+      m = s.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4}).*?(\d{1,2})[.:](\d{2})\s*(?:WIB|WITA|WIT)?/i);
+      if (m) { const bln = bulanMap[m[2].toLowerCase()]; if (bln !== undefined) return new Date(+m[3],bln,+m[1],+m[4],+m[5],0); }
+      if (/^\d{4}-\d{2}-\d{2}T/.test(str.trim())) { const d = new Date(str.trim()); if (!isNaN(d)) return d; }
+      return null;
+    }
+
+    function showSchedule(btn) {
+      const raw = btn.getAttribute('data-schedule') || '';
+      const p   = parseJadwalStr(raw);
+      if (!p.tanggalFormatted && !p.waktu) {
+        document.getElementById('wpJadwalBody').innerHTML = `
+          <div style="padding:1.5rem;">
+            <div class="alert alert-secondary mb-0">
+              <i class="bi bi-info-circle me-2"></i>
+              <span style="white-space:pre-line;">${raw}</span>
+            </div>
+          </div>`;
+        document.getElementById('jdCalBtn').style.display = 'none';
+        wpOpenJadwal(); return;
+      }
+      _jadwalExamDate = parseTanggalIndonesia(p.tanggalFormatted + (p.waktu ? ' ' + p.waktu : ''));
+      let dayName = '', fullDate = '', timeStr = '';
+      const parts = p.tanggalFormatted.match(/^(\w+),?\s+(.+)/);
+      if (parts) { dayName = parts[1]; fullDate = parts[2]; } else { fullDate = p.tanggalFormatted; }
+      if (p.waktu) timeStr = 'Pukul ' + p.waktu;
+      const cdHtml = `
+        <div class="jd-countdown" id="jdCountdownWrap">
+          <div class="jd-cd-label">
+            <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="9" stroke="#92400e" stroke-width="2"/>
+              <path d="M12 7v5l3 3" stroke="#92400e" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Hitung mundur ujian
+          </div>
+          <div class="jd-cd-blocks" id="jdCdBlocks">
+            <div class="jd-cd-block"><div class="jd-cd-num" id="jdCdH">--</div><div class="jd-cd-lbl">jam</div></div>
+            <div class="jd-cd-block"><div class="jd-cd-num" id="jdCdM">--</div><div class="jd-cd-lbl">mnt</div></div>
+            <div class="jd-cd-block"><div class="jd-cd-num" id="jdCdS">--</div><div class="jd-cd-lbl">dtk</div></div>
+          </div>
+        </div>`;
+      let ruangHtml = '';
+      if (p.ruangUjian) {
+        ruangHtml = `
+          <div class="jd-section">
+            <div class="jd-label">Tempat / Ruangan Ujian</div>
+            <div class="jd-ruang-card">
+              <div class="jd-ruang-icon">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24">
+                  <path d="M3 21h18M3 7l9-4 9 4M4 7v14M20 7v14M9 21v-4a3 3 0 0 1 6 0v4"
+                    stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <div class="jd-ruang-lbl">
+                  <svg width="11" height="11" fill="none" viewBox="0 0 24 24">
+                    <path d="M12 2C8.134 2 5 5.134 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.866-3.134-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z" fill="#6d28d9"/>
+                  </svg>
+                  Lokasi Ujian
+                </div>
+                <div class="jd-ruang-name">${p.ruangUjian}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+      function initials(name) {
+        if (!name) return '?';
+        return name.split(' ').filter(Boolean).slice(0,2).map(w => w[0].toUpperCase()).join('');
+      }
+      let pengujiHtml = '';
+      if (p.ketuaPenguji || p.penguji1 || p.dosenPembimbing) {
+        let rows = '';
+        if (p.ketuaPenguji)    rows += `<div class="jd-penguji-row"><div class="jd-avatar jd-av-red">${initials(p.ketuaPenguji)}</div><div><div class="jd-role">Ketua Penguji</div><div class="jd-name">${p.ketuaPenguji}</div></div></div>`;
+        if (p.penguji1)        rows += `<div class="jd-penguji-row"><div class="jd-avatar jd-av-blue">${initials(p.penguji1)}</div><div><div class="jd-role">Penguji 1</div><div class="jd-name">${p.penguji1}</div></div></div>`;
+        if (p.dosenPembimbing) rows += `<div class="jd-penguji-row"><div class="jd-avatar jd-av-green">${initials(p.dosenPembimbing)}</div><div><div class="jd-role">Dosen Pembimbing</div><div class="jd-name">${p.dosenPembimbing}</div></div></div>`;
+        pengujiHtml = `
+          <div class="jd-section">
+            <div class="jd-penguji-wrap">
+              <div class="jd-penguji-head">
+                <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+                    stroke="#7f1d1d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Tim Penguji
+              </div>
+              ${rows}
+            </div>
+          </div>`;
+      }
+      document.getElementById('jdCalBtn').style.display = _jadwalExamDate ? 'flex' : 'none';
+      document.getElementById('wpJadwalBody').innerHTML = `
+        <div class="jd-section">
+          <div class="jd-label">Tanggal &amp; Waktu</div>
+          <div class="jd-datetime-card">
+            <div class="jd-datetime-icon">📅</div>
+            <div>
+              ${dayName ? `<div class="jd-day">${dayName}</div>` : ''}
+              <div class="jd-date">${fullDate}</div>
+              ${timeStr ? `<div class="jd-time">${timeStr}</div>` : ''}
+            </div>
+          </div>
+        </div>
+        ${cdHtml}
+        ${ruangHtml}
+        ${pengujiHtml}
+        <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:.65rem .9rem;margin-top:.5rem;display:flex;align-items:flex-start;gap:.55rem;">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:.05rem;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"
+              stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <small style="color:#92400e;font-size:.78rem;line-height:1.5;">
+            Harap hadir <strong>30 menit sebelum</strong> waktu ujian dimulai.
+            Pastikan membawa seluruh berkas yang diperlukan.
+          </small>
+        </div>`;
+      wpOpenJadwal();
+      startJadwalCountdown();
+    }
+
+    function startJadwalCountdown() {
+      if (_jadwalCountdownInterval) clearInterval(_jadwalCountdownInterval);
+      const wrap = document.getElementById('jdCountdownWrap');
+      if (!wrap) return;
+      if (!_jadwalExamDate || isNaN(_jadwalExamDate.getTime())) {
+        wrap.innerHTML = `<div style="width:100%;"><div class="jd-cd-label" style="color:#9ca3af;">⚠️ Format waktu tidak dikenali</div></div>`;
+        return;
+      }
+      function tick() {
+        const diff = _jadwalExamDate - new Date();
+        const hEl  = document.getElementById('jdCdH');
+        const mEl  = document.getElementById('jdCdM');
+        const sEl  = document.getElementById('jdCdS');
+        if (!hEl || !mEl || !sEl) { clearInterval(_jadwalCountdownInterval); return; }
+        if (diff <= 0) {
+          clearInterval(_jadwalCountdownInterval);
+          const blocks = document.getElementById('jdCdBlocks');
+          if (blocks) blocks.innerHTML = `<span class="jd-cd-done">✅ Ujian sedang berlangsung / sudah selesai</span>`;
+          return;
+        }
+        const totalSec = Math.floor(diff / 1000);
+        const days  = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const mins  = Math.floor((totalSec % 3600) / 60);
+        const secs  = totalSec % 60;
+        const blocks = document.getElementById('jdCdBlocks');
+        if (blocks && days > 0 && !document.getElementById('jdCdD')) {
+          blocks.insertAdjacentHTML('afterbegin',
+            `<div class="jd-cd-block"><div class="jd-cd-num" id="jdCdD">${String(days).padStart(2,'0')}</div><div class="jd-cd-lbl">hari</div></div>`);
+        }
+        const dEl = document.getElementById('jdCdD');
+        if (dEl) dEl.textContent = String(days).padStart(2,'0');
+        hEl.textContent = String(hours).padStart(2,'0');
+        mEl.textContent = String(mins).padStart(2,'0');
+        sEl.textContent = String(secs).padStart(2,'0');
+      }
+      tick();
+      _jadwalCountdownInterval = setInterval(tick, 1000);
+    }
+
+    function jadwalAddToCalendar() {
+      if (!_jadwalExamDate) return;
+      const pad = n => String(n).padStart(2,'0');
+      const fmt = d => `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+      const end = new Date(_jadwalExamDate.getTime() + 2 * 3600000);
+      const title = encodeURIComponent("Ujian Tugas Akhir");
+      const gcal  = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${fmt(_jadwalExamDate)}/${fmt(end)}`;
+      window.open(gcal, '_blank', 'noopener,noreferrer');
+    }
+
+    function checkSurveyBeforeViewBAP(nim, bapUrl) {
+  const cleanUrl = sanitizeDriveUrl(bapUrl);
+
+  Swal.fire({
+    title: 'Mengecek Pengisian Survey...',
+    html: 'Mohon tunggu sebentar',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  const fd = new FormData();
+  fd.append('action', 'checkSurvey');
+  fd.append('nim', nim);
+
+  fetch(POST_URL, { method: 'POST', body: new URLSearchParams(fd) })
+    .then(r => r.json())
+    .then(d => {
+      Swal.close();
+
+      if (d.success && d.completed) {
+        // ✅ Survey sudah diisi → tampilkan tombol, user tap → buka tab baru
+        Swal.fire({
+          icon: 'success',
+          title: 'Survey Sudah Diisi',
+          html: 'Klik tombol di bawah untuk membuka BAP.',
+          confirmButtonText: '<i class="bi bi-file-earmark-pdf me-1"></i> Buka BAP',
+          confirmButtonColor: '#28a745',
+          allowOutsideClick: false
+        }).then(r => {
+          if (r.isConfirmed) {
+            window.open(cleanUrl, '_blank');
+          }
+        });
+
+      } else {
+        // ❌ Survey belum diisi
+        Swal.fire({
+          icon: 'warning',
+          title: 'Belum Mengisi Survey',
+          html: `<p>Anda harus mengisi <strong>Survey Tugas Akhir</strong> terlebih dahulu.<br>
+                 Klik tombol di bawah untuk mengisi survey:</p>`,
+          showCancelButton: true,
+          confirmButtonText: 'Isi Survey Sekarang',
+          cancelButtonText: 'Nanti Saja',
+          confirmButtonColor: '#28a745',
+          cancelButtonColor: '#6c757d'
+        }).then(r => {
+          if (r.isConfirmed) {
+            window.open(
+              'https://docs.google.com/forms/d/e/1FAIpQLSdQ6C0sAQVYsOv0Mo7tMjj21jtI4mmOoipwoOUCZOktTBYxZQ/viewform?usp=sf_link',
+              '_blank'
+            );
+          }
+        });
+      }
+    })
+    .catch(() => {
+      Swal.close();
+      Swal.fire({
+        icon: 'error',
+        title: 'Terjadi Kesalahan',
+        text: 'Gagal mengecek status survey.',
+        confirmButtonText: 'OK'
+      });
+    });
+}
+
+    function wpOpenJadwal() {
+      const el = document.getElementById('wpJadwalOverlay');
+      el.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function wpCloseJadwal(e) {
+      if (e && e.target !== document.getElementById('wpJadwalOverlay')) return;
+      if (_jadwalCountdownInterval) clearInterval(_jadwalCountdownInterval);
+      document.getElementById('wpJadwalOverlay').style.display = 'none';
+      document.body.style.overflow = '';
+    }
+    function wpOpenRevisi() {
+      const el = document.getElementById('wpRevisiOverlay');
+      el.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function wpCloseRevisi(e) {
+  if (e && e.target !== document.getElementById('wpRevisiOverlay')) return;
+  document.getElementById('wpRevisiOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+  currentRevisionRequest = ''; selectedFields.clear();
+  currentRevisionSkema = '';   // ← tambah baris ini (opsional, tidak wajib)
+}
+
+    function showRevisionModal(nim, nama, revisionRequest, skema) {
+  currentRevisionRequest = revisionRequest;
+  currentRevisionSkema   = skema || '';
+  document.getElementById('revisionNim').value     = nim;
+  document.getElementById('revisionNama').value    = nama;
+  document.getElementById('revisionRequest').value = revisionRequest;
+
+  const opts = buildRevisionOptions(currentRevisionSkema);
+
+  document.getElementById('revisionFilesContainer').innerHTML = `
+  <div class="revision-file-item" id="fileItem_1">
+    <button type="button" class="remove-file-btn"
+      onclick="removeRevisionFile('fileItem_1')" style="display:none;">×</button>
+    <div class="mb-3">
+      <label class="form-label">File yang akan direvisi</label>
+      <select class="form-select revision-field" onchange="updateFileAccept(this)">
+        ${opts}
+      </select>
+    </div>
+    <div class="mb-3 revision-value-container">${buildValueInputHTML('')}</div>
+  </div>`;
+
+  fileCounter = 1;
+  selectedFields.clear();
+  document.getElementById('addFileBtn').style.display = 'block';
+  wpOpenRevisi();
+}
+
+    function addRevisionFile() {
+  const c = document.getElementById('revisionFilesContainer');
+
+  const isArtikel = (currentRevisionSkema || '').toLowerCase().trim() === 'artikel ilmiah';
+  const maxFiles  = Object.values(revisionFileConfig)
+    .filter(cfg => !cfg.onlyArtikel || isArtikel).length;
+
+  const current = c.querySelectorAll('.revision-file-item').length;
+  if (current >= maxFiles) {
+    document.getElementById('addFileBtn').style.display = 'none';
+    return;
+  }
+
+  fileCounter++;
+  const opts = buildRevisionOptions(currentRevisionSkema);
+  const n = document.createElement('div');
+  n.className   = 'revision-file-item';
+  n.id          = `fileItem_${fileCounter}`;
+  n.dataset.key = fileCounter;
+  n.innerHTML = `
+    <button type="button" class="remove-file-btn"
+      onclick="removeRevisionFile('fileItem_${fileCounter}')">×</button>
+    <div class="mb-3">
+      <label class="form-label">File yang akan direvisi</label>
+      <select class="form-select revision-field" onchange="updateFileAccept(this)">
+        ${opts}
+      </select>
+    </div>
+    <div class="mb-3 revision-value-container">${buildValueInputHTML('')}</div>`;
+  c.appendChild(n);
+
+  c.querySelectorAll('.remove-file-btn').forEach(b => b.style.display = 'block');
+
+  if (c.querySelectorAll('.revision-file-item').length >= maxFiles) {
+    document.getElementById('addFileBtn').style.display = 'none';
+  }
+
+  updateSelectedFields();
+  updateDropdownOptions();
+  setTimeout(() => n.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+
+    function removeRevisionFile(id) {
+      const item = document.getElementById(id);
+      if (item) {
+        const sel = item.querySelector('.revision-field');
+        if (sel && sel.value) selectedFields.delete(sel.value);
+        item.remove();
+        if (document.getElementById('revisionFilesContainer')
+              .querySelectorAll('.revision-file-item').length < 2)
+          document.getElementById('addFileBtn').style.display = 'block';
+        updateDropdownOptions();
+      }
+    }
+
+    function updateSelectedFields() {
+      selectedFields.clear();
+      document.querySelectorAll('.revision-field').forEach(s => { if (s.value) selectedFields.add(s.value); });
+    }
+
+    function updateDropdownOptions() {
+  const all = document.querySelectorAll('.revision-field');
+  all.forEach(s => {
+    const cv = s.value;
+    s.querySelectorAll('option').forEach(o => o.disabled = false);
+    all.forEach(os => {
+      if (os !== s && os.value) {
+        const opt = s.querySelector(`option[value="${os.value}"]`);
+        if (opt) opt.disabled = true;
+      }
+    });
+    if (cv && s.options[s.selectedIndex].disabled) {
+      s.value = '';
+      const fi = s.closest('.revision-file-item');
+      const container = fi.querySelector('.revision-value-container');
+      if (container) container.innerHTML = buildValueInputHTML('');
+    }
+  });
+}
+
+    function updateFileAccept(sel) {
+  const f  = sel.value;
+  const fi = sel.closest('.revision-file-item');
+  const container = fi.querySelector('.revision-value-container');
+  const tot  = document.querySelectorAll('.revision-file-item').length;
+  const rb   = fi.querySelector('.remove-file-btn');
+  if (tot > 1) rb.style.display = 'block';
+  updateSelectedFields(); updateDropdownOptions();
+
+  container.innerHTML = buildValueInputHTML(f);
+
+  if (f && revisionFileConfig[f] && revisionFileConfig[f].type !== 'link') {
+    const cfg = revisionFileConfig[f];
+    const inp = container.querySelector('.revision-file-input');
+    inp.setAttribute('accept', cfg.accept);
+    container.querySelector('.file-type-info').innerHTML = `<strong>Tipe file:</strong> ${cfg.info}`;
+  }
+}
+
+    async function submitMultipleRevisions() {
+      const nim  = document.getElementById('revisionNim').value;
+      const nama = document.getElementById('revisionNama').value;
+      const rr   = currentRevisionRequest;
+      const fis  = document.querySelectorAll('.revision-file-item');
+      const ftu = [], uF = new Set();
+for (let i = 0; i < fis.length; i++) {
+  const it = fis[i];
+  const fs = it.querySelector('.revision-field');
+  const f  = fs.value;
+  if (!f) { Swal.fire({ icon:'warning', title:'Peringatan', text:`Item ${i+1}: Pilih jenis file!`, confirmButtonText:'OK' }); return; }
+  if (uF.has(f)) { Swal.fire({ icon:'error', title:'File Duplikat', text:`File "${f}" sudah dipilih!`, confirmButtonText:'OK' }); return; }
+  uF.add(f);
+
+  const cfg = revisionFileConfig[f];
+  if (cfg && cfg.type === 'link') {
+    const linkInp = it.querySelector('.revision-link-input');
+    const val = (linkInp ? linkInp.value : '').trim();
+    if (!val) { Swal.fire({ icon:'warning', title:'Peringatan', text:`Item ${i+1}: Isi link terlebih dahulu!`, confirmButtonText:'OK' }); return; }
+    if (!/^https?:\/\//i.test(val)) { Swal.fire({ icon:'error', title:'Format Salah', text:`Item ${i+1}: Link harus diawali http:// atau https://`, confirmButtonText:'OK' }); return; }
+    ftu.push({ field:f, isLink:true, value:val, index:i+1 });
+    continue;
+  }
+
+  const finp = it.querySelector('.revision-file-input');
+  const file = finp.files[0];
+  if (!file) { Swal.fire({ icon:'warning', title:'Peringatan', text:`Item ${i+1}: Pilih file revisi!`, confirmButtonText:'OK' }); return; }
+  if (cfg) {
+    if (!validateFileType(file, cfg.accept)) { Swal.fire({ icon:'error', title:'Tipe File Tidak Sesuai', text:`Item ${i+1}: Format harus: ${cfg.accept}`, confirmButtonText:'OK' }); return; }
+    if (file.size > cfg.maxSize) { Swal.fire({ icon:'error', title:'File Terlalu Besar', text:`Item ${i+1}: Maks ${cfg.maxSize/(1024*1024)}MB.`, confirmButtonText:'OK' }); return; }
+  }
+  ftu.push({ field:f, file:file, index:i+1 });
+}
+      if (ftu.length === 0) { Swal.fire({ icon:'warning', title:'Peringatan', text:'Tidak ada file yang dipilih!', confirmButtonText:'OK' }); return; }
+      const conf = await Swal.fire({
+        title:'Konfirmasi Upload Revisi',
+        html:`Anda akan mengupload <strong>${ftu.length} file</strong><br><br><small><strong>PERHATIAN:</strong> Hanya 1x submit untuk permintaan ini.</small>`,
+        icon:'warning', showCancelButton:true, confirmButtonText:'Ya, Upload Sekarang',
+        cancelButtonText:'Batal', confirmButtonColor:'#d33', allowOutsideClick:false
+      });
+      if (!conf.isConfirmed) return;
+      Swal.fire({
+        imageUrl:"https://hukum.upnvj.ac.id/wp-content/uploads/2025/12/Progress-of-loading-hand.gif",
+        title:'Mengupload File...',
+        html:`Memulai proses upload...<br>
+          <div class="progress mt-3" style="height:25px;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info"
+              role="progressbar" style="width:0%" id="uploadProgressBar">0%</div>
+          </div>
+          <p class="mt-2" id="uploadStatus">Persiapan...</p>`,
+        showConfirmButton:false, allowOutsideClick:false, didOpen:() => Swal.showLoading()
+      });
+      const sb = document.getElementById('submitRevisionBtn'), ot = sb.innerHTML;
+      sb.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Mengupload...';
+      sb.disabled = true;
+      try {
+        const res = [];
+        for (let i = 0; i < ftu.length; i++) {
+          const it  = ftu[i];
+          const prg = Math.round((i / ftu.length) * 100);
+          document.getElementById('uploadProgressBar').style.width  = prg + '%';
+          document.getElementById('uploadProgressBar').textContent  = prg + '%';
+          document.getElementById('uploadStatus').textContent       = `Mengupload ${it.field} (${i+1}/${ftu.length})...`;
+          const r = it.isLink
+    ? await submitSingleLinkRevision(nim, nama, it.field, it.value, rr)
+    : await uploadSingleFile(nim, nama, it.field, it.file, rr);
+  res.push(r);
+          const prg2 = Math.round(((i+1) / ftu.length) * 100);
+          document.getElementById('uploadProgressBar').style.width  = prg2 + '%';
+          document.getElementById('uploadProgressBar').textContent  = prg2 + '%';
+        }
+        document.getElementById('uploadProgressBar').style.width  = '100%';
+        document.getElementById('uploadProgressBar').textContent  = '100%';
+        document.getElementById('uploadStatus').textContent       = 'Menyelesaikan proses...';
+        const succ = res.filter(r => r && r.success);
+        const fail = res.filter(r => !r || !r.success);
+        Swal.close();
+        if (fail.length === 0) {
+          Swal.fire({ icon:'success', title:'Berhasil!',
+            html:`<strong>${succ.length} file</strong> berhasil diupload<br><br><small>Tunggu permintaan revisi berikutnya.</small>`,
+            confirmButtonText:'OK', timer:4000, timerProgressBar:true,
+            didClose:() => { wpCloseRevisi(); refreshData(); } });
+        } else if (succ.length > 0) {
+          Swal.fire({ icon:'warning', title:'Sebagian Berhasil',
+            html:`<strong>${succ.length}</strong> berhasil, <strong>${fail.length}</strong> gagal.`,
+            confirmButtonText:'OK', didClose:() => { wpCloseRevisi(); refreshData(); } });
+        } else {
+          Swal.fire({ icon:'error', title:'Semua Gagal', text:'Semua file gagal. Silakan coba lagi.', confirmButtonText:'OK' });
+        }
+      } catch (error) {
+        Swal.close();
+        Swal.fire({ icon:'error', title:'Terjadi Kesalahan', text:'Kesalahan saat upload: ' + error.message, confirmButtonText:'OK' });
+      } finally { sb.innerHTML = ot; sb.disabled = false; }
+    }
+
+    function uploadSingleFile(nim, nama, field, file, revisionRequest) {
+      return new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const b64 = e.target.result.split(',')[1];
+          const fd  = new FormData();
+          fd.append('action','revisionFile'); fd.append('nim',nim); fd.append('nama',nama);
+          fd.append('field',field); fd.append('file',b64); fd.append('originalName',file.name);
+          fd.append('revisionRequest',revisionRequest);
+          fetch(POST_URL, { method:'POST', body:new URLSearchParams(fd) })
+            .then(r => r.json()).then(d => res(d)).catch(err => rej(err));
+        };
+        reader.onerror = () => rej(new Error('Gagal membaca file'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function submitSingleLinkRevision(nim, nama, field, linkValue, revisionRequest) {
+  const fd = new FormData();
+  fd.append('action', 'revisionLink');
+  fd.append('nim', nim);
+  fd.append('nama', nama);
+  fd.append('field', field);
+  fd.append('linkValue', linkValue);
+  fd.append('revisionRequest', revisionRequest);
+  return fetch(POST_URL, { method:'POST', body:new URLSearchParams(fd) }).then(r => r.json());
+}
+
+    function validateFileType(file, acceptString) {
+      if (!acceptString) return true;
+      const exts = acceptString.split(',').map(e => e.trim().toLowerCase());
+      const fn   = file.name.toLowerCase();
+      return exts.some(e => fn.endsWith(e));
+    }
+
+    function buildValueInputHTML(field) {
+  const cfg = revisionFileConfig[field];
+  if (cfg && cfg.type === 'link') {
+    return `
+      <label class="form-label">Link Revisi</label>
+      <input type="url" class="form-control revision-link-input"
+             placeholder="https://contoh.com/artikel-anda">
+      <small class="form-text text-muted">${cfg.info}</small>
+      <div class="file-type-info"></div>`;
+  }
+  return `
+    <label class="form-label">File Revisi</label>
+    <input type="file" class="form-control revision-file-input" required>
+    <small class="form-text text-muted">File lama akan otomatis diganti dengan yang baru</small>
+    <div class="file-type-info"></div>`;
+}
+
+    function sanitizeDriveUrl(url) {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+
+    // Buang parameter personal
+    ['ouid', 'rtpof', 'sd', 'authuser'].forEach(p => u.searchParams.delete(p));
+
+    // Google Sheets: paksa mode /preview (read-only)
+    // Google Sheets: pakai viewer generik Drive, bukan editor Sheets
+    if (u.pathname.includes('/spreadsheets/d/')) {
+      const idMatch = u.pathname.match(/\/spreadsheets\/d\/([^/]+)/);
+      if (idMatch) return `https://drive.google.com/file/d/${idMatch[1]}/preview`;
+    }
+
+    // Google Docs: paksa mode /preview
+    if (u.pathname.includes('/document/d/')) {
+      u.pathname = u.pathname.replace(/\/(edit|view|preview)(\/.*)?$/, '/preview');
+      u.search = '';
+      return u.toString();
+    }
+
+    // Google Drive file biasa: pastikan /view?usp=sharing
+    if (u.pathname.includes('/file/d/')) {
+      u.pathname = u.pathname.replace(/\/(view|edit|preview)(\/.*)?$/, '/view');
+      u.search = '';
+      u.searchParams.set('usp', 'sharing');
+      return u.toString();
+    }
+
+    return u.toString();
+  } catch (e) {
+    return url;
+  }
+}
+
+    fetchData();
+  </script>
+</body>
+</html>
